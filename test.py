@@ -55,11 +55,32 @@ class TestAPI(unittest.TestCase):
             print(f"Error when connecting to Snowflake: {str(e)}")
             self.fail("Snowflake connection and query execution failed.")
 
+    def test_load_hired_employees_endpoint(self):
+        url = 'http://localhost:5000/employees/load_hired_employees/'
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 200)
+        print('Load hired employees --> OK.')
+    
+    def test_load_departments_endpoint(self):
+        url = 'http://localhost:5000/departments/load_departments/'
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 200)
+        print('Load departments --> OK.')
+    
+    def test_load_jobs_endpoint(self):
+        url = 'http://localhost:5000/jobs/load_jobs/'
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 200)
+        print('Load jobs --> OK.')
+
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     suite.addTest(TestAPI('test_healthcheck_endpoint'))
     suite.addTest(TestAPI('test_s3_connection'))
     suite.addTest(TestAPI('test_snowflake_connection_and_query_execution'))
+    suite.addTest(TestAPI('test_load_hired_employees_endpoint'))
+    suite.addTest(TestAPI('test_load_departments_endpoint'))
+    suite.addTest(TestAPI('test_load_jobs_endpoint'))
 
     unittest.TextTestRunner(verbosity=2).run(suite)
