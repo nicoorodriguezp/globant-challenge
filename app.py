@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 import logging
-from controller import df_batch_insert_snowflake, execute_statement_snowflake, get_csv_from_bucket, get_employees_hired_for_each_job_and_department_divided_by_quarter as get_hired_employees_by_quarter
+from controller import df_batch_insert_snowflake, execute_statement_snowflake, get_csv_from_bucket, get_department_that_hired_more_employees_than_the_mean, get_employees_hired_for_each_job_and_department_divided_by_quarter as get_hired_employees_by_quarter, read_snowflake_data_json
 from models import HiredEmployee, Department, Job
 
 app = Flask(__name__)
@@ -128,6 +128,39 @@ def get_employees_hired_for_each_job_and_department_divided_by_quarter(year):
         logging.exception(f"Error loading number of employees hired for each job and department in {year} data: %s", str(e))
         return jsonify({'status': 'ERROR', 'message': 'There was an error when trying to obtain the report of employees hired by quarter.'}), 500
 
+
+@app.route('/reports/department_that_hired_more_employees_than_the_mean_of_employees_hired/', defaults={'year': 2021}, methods=['GET'])
+@app.route('/reports/department_that_hired_more_employees_than_the_mean_of_employees_hired/<int:year>/', methods=['GET'])
+def get_department_that_hired_more_employees_than_the_mean_of_employees_hired(year):
+    '''
+        Params:
+            - year: Ex. 2023 \n
+        Returns:
+            Returns a JSON with a list of ID, NAME and TOTAL number of employees hired for each department that exceeded the average number of hires in the past 
+            year by parameter across all departments, sorted in descending order by number of employees hired. \n
+            Response Ex.\n
+            [
+                {
+                "DEPARTMENT": "Support",
+                "HIRED": 221,
+                "ID": 8
+                },
+                ...
+            ]
+    '''
+    try:
+        response = get_department_that_hired_more_employees_than_the_mean(year)
+        if response:
+            return jsonify({
+                'status': 'OK',
+                'message':f'List of ID, NAME and TOTAL number of employees hired for each department that exceeded the average number of hires in {year} across all departments, sorted in descending order by number of employees hired.', 
+                'response': response
+            }), 200
+        else:
+            return jsonify({'status': 'ERROR', 'message': 'No data obtained for the year entered.'}), 404
+    except Exception as e:
+        logging.exception(f"Error loading departments that exceeded the average number of hires in {year}: %s", str(e))
+        return jsonify({'status': 'ERROR', 'message': f'There was an error when trying to obtain the report of departments that exceeded the average number of hires in {year} across all departments.'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

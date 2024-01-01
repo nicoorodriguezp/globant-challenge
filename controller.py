@@ -169,7 +169,7 @@ def get_employees_hired_for_each_job_and_department_divided_by_quarter(year = 20
     
     return read_snowflake_data_json(snowflake_query, snowflake_schema)
             
-
+def get_department_that_hired_more_employees_than_the_mean(year = 2021, snowflake_schema = 'TRUSTED'):
     '''
         Params:
             - year\n

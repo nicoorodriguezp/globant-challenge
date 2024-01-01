@@ -122,5 +122,6 @@ if __name__ == '__main__':
     suite.addTest(TestAPI('test_load_departments_endpoint'))
     suite.addTest(TestAPI('test_load_jobs_endpoint'))
     suite.addTest(TestAPI('test_get_employees_hired_for_each_job_and_department_divided_by_quarter_endpoint'))
+    suite.addTest(TestAPI('test_get_department_that_hired_more_employees_than_the_mean_of_employees_hired_endpoint'))
 
     unittest.TextTestRunner(verbosity=2).run(suite)
