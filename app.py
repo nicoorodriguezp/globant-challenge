@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 import logging
-from controller import df_batch_insert_snowflake, execute_statement_snowflake, get_csv_from_bucket
+from controller import df_batch_insert_snowflake, execute_statement_snowflake, get_csv_from_bucket, get_employees_hired_for_each_job_and_department_divided_by_quarter as get_hired_employees_by_quarter
 from models import HiredEmployee, Department, Job
 
 app = Flask(__name__)
@@ -88,6 +88,45 @@ def load_jobs():
         logging.exception("Error loading jobs data: %s", str(e))
         return jsonify({'status': 'ERROR', 'message': 'An error occurred while loading the historical data of jobs to Snowflake.'}), 500
 
+
+# Reports
+@app.route('/reports/employees_hired_for_each_job_and_department_divided_by_quarter/', defaults={'year': 2021}, methods=['GET'])
+@app.route('/reports/employees_hired_for_each_job_and_department_divided_by_quarter/<int:year>/', methods=['GET'])
+def get_employees_hired_for_each_job_and_department_divided_by_quarter(year):
+    '''
+        Params:
+            - year: Ex. 2023 \n
+        Returns:
+            List of the number of employees hired for each position and department in {year} divided by quarter in JSON format.\n
+            The response will be sorted alphabetically by department and position.\n
+
+            Response Ex.\n
+            [
+                {
+                    "DEPARTMENT": "Accounting",
+                    "JOB": "Account Representative IV",
+                    "Q1": 1,
+                    "Q2": 0,
+                    "Q3": 0,
+                    "Q4": 0
+                },
+                ...
+            ]
+    '''
+    
+    try:
+        response = get_hired_employees_by_quarter(year)
+        if response:
+            return jsonify({
+                'status': 'OK',
+                'message':f'Number of employees hired for each job and department in {year}, divided by quarter, and ordered alphabetically by department and job.', 
+                'response': response
+            }), 200
+        else:
+            return jsonify({'status': 'ERROR', 'message': 'No data obtained for the year entered.'}), 404
+    except Exception as e:
+        logging.exception(f"Error loading number of employees hired for each job and department in {year} data: %s", str(e))
+        return jsonify({'status': 'ERROR', 'message': 'There was an error when trying to obtain the report of employees hired by quarter.'}), 500
 
 
 if __name__ == '__main__':

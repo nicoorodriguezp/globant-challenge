@@ -5,6 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 from pyspark.sql import functions as sf
 from snowflake.connector import connect
+import json
 
 load_dotenv()
 SNOWFLAKE_ACCOUNT_URL = str(os.getenv('SNOWFLAKE_ACCOUNT_URL'))
@@ -114,6 +115,60 @@ def df_batch_insert_snowflake(df, table_name, snowflake_schema = 'RAW', max_reco
 
     del df
 
+def read_snowflake_data_json(snowflake_query, snowflake_schema = 'TRUSTED'):
+    '''
+        Params:
+            - snowflake_query \n
+            - snowflake_schema: Schema where the table to be accessed is located. Represents the Lakehouse layer where the table is located. \n
+        Returns:
+            A list with the result of the query in json format. \n
+    '''
+    snowflake_jdbc_url = f"jdbc:snowflake://{SNOWFLAKE_ACCOUNT_URL}/?warehouse={SNOWFLAKE_WAREHOUSE}&db={SNOWFLAKE_DATABASE}&schema={snowflake_schema}&user={SNOWFLAKE_USER}&password={SNOWFLAKE_PWD}"
+
+    df = spark.read \
+    .format("jdbc") \
+    .option("url", snowflake_jdbc_url) \
+    .option("query", snowflake_query) \
+    .load()
+
+    if df:
+        response_objects = [json.loads(record) for record in df.toJSON().collect()]
+        return  response_objects
+    else:
+        return None
+
+def get_employees_hired_for_each_job_and_department_divided_by_quarter(year = 2021, snowflake_schema = 'TRUSTED'):
+    '''
+        Params:
+            - year\n
+            - snowflake_schema\n
+        Returns: 
+        List of the number of employees hired for each position and department in {year} divided by quarter in JSON format. The response will be sorted alphabetically by department and position.
+    '''
+    snowflake_query = f'''
+        SELECT 
+            NVL(DEPARTMENT, 'UNKNOWN') AS DEPARTMENT,
+            NVL(JOB, 'UNKNOWN') AS JOB,
+            SUM(CASE WHEN DATE_PART('quarter', DATETIME) = 1 THEN 1 ELSE 0 END) AS Q1,
+            SUM(CASE WHEN DATE_PART('quarter', DATETIME) = 2 THEN 1 ELSE 0 END) AS Q2,
+            SUM(CASE WHEN DATE_PART('quarter', DATETIME) = 3 THEN 1 ELSE 0 END) AS Q3,
+            SUM(CASE WHEN DATE_PART('quarter', DATETIME) = 4 THEN 1 ELSE 0 END) AS Q4
+        FROM 
+            GLOBANT.TRUSTED.HIRED_EMPLOYEE HE
+            LEFT JOIN GLOBANT.TRUSTED.JOB           J ON (HE.JOB_ID = j.ID)
+            LEFT JOIN GLOBANT.TRUSTED.DEPARTMENT    D ON (HE.DEPARTMENT_ID = d.ID)
+        WHERE 
+            DATETIME BETWEEN '{year}-01-01' AND '{year}-12-31'
+        GROUP BY 
+            DEPARTMENT,
+            JOB
+        ORDER BY 
+            DEPARTMENT,
+            JOB
+    '''
+    
+    return read_snowflake_data_json(snowflake_query, snowflake_schema)
+            
 
     '''
         Params:

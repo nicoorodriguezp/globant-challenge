@@ -73,6 +73,45 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         print('Load jobs --> OK.')
 
+    def test_get_employees_hired_for_each_job_and_department_divided_by_quarter_endpoint(self):
+        url = 'http://localhost:5000/reports/employees_hired_for_each_job_and_department_divided_by_quarter/2021/'
+        response = requests.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check if the structure of the API response is correct.
+        api_response = response.json()
+        self.assertTrue("message"   in api_response)
+        self.assertTrue("response"  in api_response)
+        self.assertTrue("status"    in api_response)
+
+        response_expected_keys = ["DEPARTMENT", "JOB", "Q1", "Q2", "Q3", "Q4"]
+        for index, item in enumerate(api_response["response"]):
+
+            if not all(key in item for key in response_expected_keys):
+                print(f"Element {index + 1} does not have the expected structure: {item}")
+
+        print('Report of employees hired for each job and department divided by quarter --> OK.')
+
+    def test_get_department_that_hired_more_employees_than_the_mean_of_employees_hired_endpoint(self):
+        url = 'http://localhost:5000/reports/department_that_hired_more_employees_than_the_mean_of_employees_hired/2021/'
+        response = requests.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Check if the structure of the API response is correct.
+        api_response = response.json()
+        self.assertTrue("message"   in api_response)
+        self.assertTrue("response"  in api_response)
+        self.assertTrue("status"    in api_response)
+
+        response_expected_keys = ["DEPARTMENT", "HIRED", "ID"]
+        for index, item in enumerate(api_response["response"]):
+
+            if not all(key in item for key in response_expected_keys):
+                print(f"Element {index + 1} does not have the expected structure: {item}")
+        
+        print('Report of departments that hired more employees than the mean of employees hired --> OK.')
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -82,5 +121,6 @@ if __name__ == '__main__':
     suite.addTest(TestAPI('test_load_hired_employees_endpoint'))
     suite.addTest(TestAPI('test_load_departments_endpoint'))
     suite.addTest(TestAPI('test_load_jobs_endpoint'))
+    suite.addTest(TestAPI('test_get_employees_hired_for_each_job_and_department_divided_by_quarter_endpoint'))
 
     unittest.TextTestRunner(verbosity=2).run(suite)
