@@ -152,6 +152,31 @@ In case the parameter is not sent, it returns the data for 2021.
 
 Returns status code 200 if the API is running.
 
+## Environment Variables
+
+To run this project, you will need to include the following environment variables in your .env file.
+
+#### AWS CREDENTIALS
+`AWS_ACCESS_KEY_ID`
+
+`AWS_SECRET_ACCESS_KEY`
+
+#### SNOWFLAKE CREDENTIALS
+`SNOWFLAKE_ACCOUNT_URL`
+
+`SNOWFLAKE_ACCOUNT`
+
+`SNOWFLAKE_REGION`
+
+`SNOWFLAKE_WAREHOUSE`
+
+`SNOWFLAKE_DATABASE`
+
+`SNOWFLAKE_ROLE`
+
+`SNOWFLAKE_USER`
+
+`SNOWFLAKE_PWD`
 
 ## Deployment
 
